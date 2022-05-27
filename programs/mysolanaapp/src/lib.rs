@@ -16,6 +16,7 @@ pub mod mysolanaapp {
         let stadium = &mut ctx.accounts.stadium;
         stadium.bases = 0;
         stadium.score = 0;
+        stadium.admin_key = *ctx.accounts.admin.key;
         Ok(())
     }
 
