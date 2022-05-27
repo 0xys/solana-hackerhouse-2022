@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "tsc && node ./dist/test.js",
-    "start": "tsc && node ./dist/index.js"
+    "start": "tsc && node ./dist/index.js",
+    "clean": "npm run clean:program",
+    "build:program": "cargo build-bpf --manifest-path=../contracts/Cargo.toml --bpf-out-dir=../dist/program",
+    "clean:program": "cargo clean --manifest-path=../contracts/Cargo.toml && rm -rf ../dist",
+    "test:program": "cargo test-bpf --manifest-path=../contracts/Cargo.toml"
   },
   "keywords": [],
   "author": "",
