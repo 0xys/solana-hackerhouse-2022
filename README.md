@@ -35,6 +35,11 @@ anchor deploy
 ```
 Run `solana logs` to track the transaction trace.
 
+## Mint test token
+```
+solana airdrop 100 <YOUR_ADDRESS>
+```
+
 ## Frontend
 ```
 yarn create next-app --typescript app
