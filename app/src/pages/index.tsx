@@ -44,7 +44,7 @@ const Home: NextPage = () => {
       /* Create the program interface combining the IDL, program ID, and provider */
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
-      const program = new Program(EXAMPLE1_IDL, programID, provider);
+      const program = new Program(idl, programID, provider);
 
       /* Interact with the program via RPC */
       await program.rpc.create({
@@ -60,6 +60,7 @@ const Home: NextPage = () => {
       console.log('[App handleCounterCreate] account => ', account);
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
       setValue(account.count.toString());
     } catch (error) {
       console.log('[App handleCounterCreate] error => ', error);
@@ -71,7 +72,7 @@ const Home: NextPage = () => {
       const provider = getProvider();
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
-      const program = new Program(EXAMPLE1_IDL, programID, provider);
+      const program = new Program(idl, programID, provider);
 
       await program.rpc.increment({
         accounts: {
@@ -83,6 +84,7 @@ const Home: NextPage = () => {
       console.log('[App handleIncrement] account => ', account);
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
       setValue(account.count.toString());
     } catch (error) {
       console.log('[App handleIncrement] error => ', error);
