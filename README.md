@@ -18,7 +18,13 @@ declare_id!("your-program-id");
 [programs.localnet]
 mysolanaapp = "your-program-id"
 ```
-
+```
+# app/idl.json
+...
+"metadata": {
+    "address": "your-program-id"
+}
+```
 ## Test
 ```
 anchor test
