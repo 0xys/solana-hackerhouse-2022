@@ -34,3 +34,12 @@ Then deploy,
 anchor deploy
 ```
 Run `solana logs` to track the transaction trace.
+
+## Frontend
+```
+yarn create next-app --typescript app
+```
+```
+yarn add @project-serum/anchor @solana/web3.js
+yarn add @solana/wallet-adapter-react @solana/wallet-adapter-react-ui @solana/wallet-adapter-wallets @solana/wallet-adapter-base
+```
