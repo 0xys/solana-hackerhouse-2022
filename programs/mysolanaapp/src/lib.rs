@@ -1,44 +1,62 @@
+pub mod stadium;
+
 use anchor_lang::prelude::*;
 
-declare_id!("ATSPEhRAUhpdLQcEjdWYuB9BNJv3iABoTdnCug54Ruye");
+declare_id!("9Kkk5Cp6NfvXEyt7oeX9ihYcwkczBSxTkUemprpxEkEe");
 
 #[program]
 pub mod mysolanaapp {
     use anchor_lang::solana_program::entrypoint::ProgramResult;
 
+    use crate::stadium::account::*;
+
     use super::*;
 
-    pub fn create(ctx: Context<Create>) -> ProgramResult {
-        let base_account = &mut ctx.accounts.base_account;
-        base_account.count = 0;
+    pub fn init_game(ctx: Context<InitGame>) -> ProgramResult {
+        let stadium = &mut ctx.accounts.stadium;
+        stadium.bases = 0;
+        stadium.score = 0;
         Ok(())
     }
 
     pub fn increment(ctx: Context<Increment>) -> ProgramResult {
-        let base_account = &mut ctx.accounts.base_account;
-        base_account.count += 1;
+        let base_account = &mut ctx.accounts.player;
+        base_account.score += 1;
         Ok(())
     }
-}
-// Transaction instructions
-#[derive(Accounts)]
-pub struct Create<'info> {
-    #[account(init, payer = user, space = 16 + 16)]
-    pub base_account: Account<'info, BaseAccount>,
-    #[account(mut)]
-    pub user: Signer<'info>,
-    pub system_program: Program <'info, System>,
-}
 
-// Transaction instructions
-#[derive(Accounts)]
-pub struct Increment<'info> {
-    #[account(mut)]
-    pub base_account: Account<'info, BaseAccount>,
-}
+    pub fn play(ctx: Context<Play>) -> ProgramResult {
+        let player = &mut ctx.accounts.player;
+        player.score += 1;
 
-// An account that goes inside a transaction instruction
-#[account]
-pub struct BaseAccount {
-    pub count: u64,
+        let stadium = &mut ctx.accounts.stadium;
+        stadium.score += 1;
+        Ok(())
+    }
+
+    // Transaction instructions
+    #[derive(Accounts)]
+    pub struct InitGame<'info> {
+        #[account(init, payer = admin, space = 16 + 16)]
+        pub stadium: Account<'info, Stadium>,
+        #[account(mut)]
+        pub admin: Signer<'info>,
+        pub system_program: Program <'info, System>,
+    }
+
+    // Transaction instructions
+    #[derive(Accounts)]
+    pub struct Increment<'info> {
+        #[account(mut)]
+        pub player: Account<'info, PlayerAccount>,
+    }
+
+    #[derive(Accounts)]
+    pub struct Play<'info> {
+        #[account(mut)]
+        pub stadium: Account<'info, Stadium>,
+        #[account(mut, signer)]
+        pub player: Account<'info, PlayerAccount>,
+        pub system_program: Program <'info, System>,
+    }
 }
