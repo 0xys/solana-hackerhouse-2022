@@ -18,6 +18,8 @@ pub struct Stadium {
 pub struct PlayerAccount {
     pub owner: Pubkey,
     pub score: u64,
+    pub last_play: u8,
+    pub last_score: u8,
 }
 
 #[program]
@@ -63,14 +65,7 @@ pub mod mysolanaapp {
         let clock = Clock::get()?;
         let token = clock.unix_timestamp;
 
-        let score = play_inner(token, &ctx.accounts.player, &mut ctx.accounts.stadium);
-
-        let player = &mut ctx.accounts.player;
-        player.score += score;
-
-        let stadium = &mut ctx.accounts.stadium;
-        stadium.score += score;
-
+        play_inner(token, &mut ctx.accounts.player, &mut ctx.accounts.stadium);
         Ok(())
     }
 
@@ -102,7 +97,7 @@ pub mod mysolanaapp {
             seeds = [&player_owner.key().to_bytes()],
             bump,
             payer = player_owner,
-            space = 8 + 40)]
+            space = 8 + 42)]
         pub player: Account<'info, PlayerAccount>,
         #[account(mut)]
         pub player_owner: Signer<'info>,

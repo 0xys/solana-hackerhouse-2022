@@ -3,11 +3,11 @@ use anchor_lang::{prelude::{Account}, Key};
 use crate::{Stadium, PlayerAccount};
 
 
-pub fn play_inner(token: i64, player: &Account<PlayerAccount>, stadium: &mut Account<Stadium>) -> u64 {
+pub fn play_inner(token: i64, player: &mut Account<PlayerAccount>, stadium: &mut Account<Stadium>) {
     // let token = entry.blockhash.as_ref()[0];
     let player_param: i64 = player.key().to_bytes()[10].into();
-    let dice: i64 = token + player_param;
-    match dice % 5 {
+    let play_result: u8 = ((token + player_param) % 5).abs().try_into().unwrap();
+    match play_result {
         0 => {
             stadium.outs += 1;
             if stadium.outs >= 3 {
@@ -33,7 +33,17 @@ pub fn play_inner(token: i64, player: &Account<PlayerAccount>, stadium: &mut Acc
         },
         _ => ()
     }
-    calc_score(stadium.bases).into()
+    let score = calc_score(stadium.bases).into();
+
+    //  clear homein-ed runners
+    stadium.bases = stadium.bases & 7;  // bases = bases & 0b0000111
+
+    player.last_score = score;
+    player.last_play = play_result;
+
+    let score: u64 = score.into();
+    player.score += score;
+    stadium.score += score;
 }
 
 fn calc_score(bases: u8) -> u8 {

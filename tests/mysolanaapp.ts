@@ -116,12 +116,37 @@ describe("mysolanaapp", () => {
       },
     });
 
-    const stadium = await program.account.stadium.fetch(_stadium.publicKey);
-    // assert.ok(stadium.numOfPlayers.toString() == '1');
-    // assert.ok(stadium.score.toString() == '2');
-
     const player = await program.account.playerAccount.fetch(_playerPda);
-    // assert.ok(player.score.toString() == '1');
+    console.log('last play', player.lastPlay)
+    
+    if(player.lastPlay == 4) {
+      assert.ok(player.lastScore.toString() == '1');
+      assert.ok(player.score.toString() == '1');
+    }else{
+      assert.ok(player.lastScore.toString() == '0');
+      assert.ok(player.score.toString() == '0');
+    }
+
+    const stadium = await program.account.stadium.fetch(_stadium.publicKey);
+    switch(player.lastPlay) {
+      case 0:
+        assert.ok(stadium.outs.toString() == '1');
+        break;
+      case 1:
+        assert.ok(stadium.bases.toString() == '1');
+        break;
+      case 2:
+        assert.ok(stadium.bases.toString() == '2');
+        break;
+      case 3:
+        assert.ok(stadium.bases.toString() == '4');
+        break;
+      case 4:
+        assert.ok(stadium.bases.toString() == '0');
+        assert.ok(stadium.score.toString() == '1');
+        break;
+    }
+
     assert.ok(true)
   })
 
