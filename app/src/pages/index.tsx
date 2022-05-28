@@ -1,8 +1,7 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import styles from '../styles/Home.module.css'
 
-import { Image, Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, Spinner, } from '@chakra-ui/react'
+import { Image, Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, Spinner, Box, Center, } from '@chakra-ui/react'
 import { CheckCircleIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 import {
   Stat,
@@ -231,77 +230,74 @@ const Home: NextPage = () => {
   }, [txStatus])
 
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>NFT Baseball</title>
-        <meta name="description" content="Play baseball with your NFT" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <Center>
+      <Box p={4} bg={'white'} shadow='md' rounded='md'>
+        <VStack margin={16}>
+          <Heading marginTop={12}>NFT Baseball</Heading>
+          <StatGroup background={'#dddddd'}>
+            <Stat margin={10}>
+              <StatLabel>Score</StatLabel>
+              <StatNumber>{stadium?.score ?? '-'}</StatNumber>
+            </Stat>
 
-      <VStack margin={32}>
-        <Heading>NFT Baseball</Heading>
-        <StatGroup background={'#eeeeee'}>
-          <Stat margin={10}>
-            <StatLabel>Score</StatLabel>
-            <StatNumber>{stadium?.score ?? '-'}</StatNumber>
-          </Stat>
+            <Stat margin={10}>
+              <StatLabel>Outs</StatLabel>
+              <StatNumber>{stadium?.outs ?? '-'}</StatNumber>
+            </Stat>
 
-          <Stat margin={10}>
-            <StatLabel>Outs</StatLabel>
-            <StatNumber>{stadium?.outs ?? '-'}</StatNumber>
-          </Stat>
-
-          <Stat margin={10}>
-            <StatLabel>Runners</StatLabel>
-            <Image src={toBaseImgSrc(stadium?.bases ?? 0)} marginTop={2}/>
-          </Stat>
-        </StatGroup>
-        {
-          !wallet.connected ? <WalletMultiButton />: <div></div>
-        }
-        {wallet.connected ? (
-          <Link href={`https://explorer.solana.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
-          {wallet.publicKey?.toBase58()} <ExternalLinkIcon mx='2px'/>
-          </Link>
-        ) : (<p>not connected</p>)}
-        <Divider orientation='horizontal' />
-        <VStack margin={10}>
+            <Stat margin={10}>
+              <StatLabel>Runners</StatLabel>
+              <Image src={toBaseImgSrc(stadium?.bases ?? 0)} marginTop={2}/>
+            </Stat>
+          </StatGroup>
           {
-            playerRegistered ? (
-            <Button onClick={() => play()} colorScheme='blue' variant='outline' disabled={!wallet.connected || txStatus == 'pending'}>
-              Play
-            </Button>):(
-              <Button onClick={() => register()} colorScheme='blue' variant='outline' disabled={!wallet.connected || txStatus == 'pending'}>
-              Register
-            </Button>
+            !wallet.connected ? <WalletMultiButton />: <div></div>
+          }
+          {wallet.connected ? (
+            <Link href={`https://explorer.solana.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
+            {wallet.publicKey?.toBase58()} <ExternalLinkIcon mx='2px'/>
+            </Link>
+          ) : (<p>not connected</p>)}
+          <Divider orientation='horizontal' />
+          <VStack margin={10}>
+            {
+              playerRegistered ? (
+              <Button onClick={() => play()} colorScheme='blue' variant='outline' disabled={!wallet.connected || txStatus == 'pending'}>
+                Play
+              </Button>):(
+                <Button onClick={() => register()} colorScheme='blue' variant='outline' disabled={!wallet.connected || txStatus == 'pending'}>
+                Register
+              </Button>
+              )
+            }
+          </VStack>
+          <Divider orientation='horizontal' />
+          {
+            txStatus == 'empty' ? (<div></div>) :
+            (
+              <VStack>
+                <HStack>
+                  {txStatus == 'done' ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<Spinner size='md' />)}
+                  {txStatus == 'done' ? (
+                      <Link href={`https://explorer.solana.com/tx/${txid}`} isExternal >
+                        {txid.slice(0, 16)}... <ExternalLinkIcon mx='2px'/>
+                      </Link>
+                    ):(
+                      <p>awaiting confirmation...</p>
+                    )
+                  }
+                </HStack> : <div></div>
+                {!!txError ? (<p>{txError}</p>) : (<div></div>)}
+                {txStatus == 'done' && player && playerPda && txType == 'play' ? (
+                  <ResultComponent result={player.lastPlay} batter={playerPda.toBase58()} score={player.lastScore}/>
+                ) : <div></div>}
+              </VStack>
             )
           }
         </VStack>
-        <Divider orientation='horizontal' />
-        {
-          txStatus == 'empty' ? (<div></div>) :
-          (
-            <VStack>
-              <HStack>
-                {txStatus == 'done' ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<Spinner size='md' />)}
-                {txStatus == 'done' ? (
-                    <Link href={`https://explorer.solana.com/tx/${txid}`} isExternal >
-                      {txid.slice(0, 16)}... <ExternalLinkIcon mx='2px'/>
-                    </Link>
-                  ):(
-                    <p>awaiting confirmation...</p>
-                  )
-                }
-              </HStack> : <div></div>
-              {!!txError ? (<p>{txError}</p>) : (<div></div>)}
-              {txStatus == 'done' && player && playerPda && txType == 'play' ? (
-                <ResultComponent result={player.lastPlay} batter={playerPda.toBase58()} score={player.lastScore}/>
-              ) : <div></div>}
-            </VStack>
-          )
-        }
-      </VStack>
-    </div>
+      </Box>
+    </Center>
+    
   )
 }
 
