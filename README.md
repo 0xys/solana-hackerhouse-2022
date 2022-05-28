@@ -46,6 +46,18 @@ Run `solana logs` to track the transaction trace.
 solana airdrop 100 <YOUR_ADDRESS>
 ```
 
+## Init Game
+```
+cd cli
+export ANCHOR_WALLET=$HOME/.config/solana/id.json
+yarn run start 
+```
+```
+hash 4ssXDSGNiZqd3fGCR45j84Vada8kn5xwsQCiWqxh9scEdSANzNjJbyFrTBHskfXjthKmkCNtTo1u32UwCN2yRjRA
+stadium address Hsx46xyY83A6gcFcrRrL2QhBgXyor3YLu2dRj39gh8qr
+stadium address fac847cc714d52c8bd553c66506157e141b8ebba885e506f414ce995c115613d
+```
+
 ## Frontend
 ```
 yarn create next-app --typescript app

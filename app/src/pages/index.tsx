@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 
-import { Image, Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, } from '@chakra-ui/react'
+import { Image, Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, Spinner, } from '@chakra-ui/react'
 import { CheckCircleIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 import {
   Stat,
@@ -29,8 +29,6 @@ import { Mysolanaapp } from '../types/mysolanaapp'
 import { Player, Stadium } from '../types/models'
 
 const { SystemProgram, Keypair } = web3;
-/* create an account  */
-const baseAccount = Keypair.generate();
 const opts = {
   preflightCommitment: "processed"
 }
@@ -46,45 +44,60 @@ const Home: NextPage = () => {
   const [playerRegistered, setPlayerRegistered] = useState<boolean>(false)
   const [playerPda, setPlayerPda] = useState<anchor.web3.PublicKey>()
   const [player, setPlayer] = useState<Player>()
-  const [provider, setProvider] = useState<anchor.AnchorProvider>()
-  const [program, setProgram] = useState<anchor.Program<Mysolanaapp>>()
+  //const [provider, setProvider] = useState<anchor.AnchorProvider>()
+  //const [program, setProgram] = useState<anchor.Program<Mysolanaapp>>()
   const [transactionDone, setTransactionDone] = useState<boolean>(true)
   const [txid, setTxid] = useState<string>('')
   const [txError, setTxError] = useState<string>('')
 
-  useEffect(() => {
-    const connection = new Connection(network);
+  const getProvider = () => {
+    const connection = new Connection(network)
     const provider = new AnchorProvider(connection, 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
       wallet, 
       opts.preflightCommitment
-    );
-    setProvider(provider)
-  }, [network])
+    )
+    return provider
+  }
 
-  useEffect(() => {
-    if (!provider) {
-      return
-    }
-
+  const getProgram = () => {
+    const provider = getProvider()
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    const program: any = new Program(idl, programID, provider);
-    setProgram(program)
+    const program = new Program<Mysolanaapp>(idl, programID, provider);
+    return program
+  }
 
-    const pubkey = anchor.web3.PublicKey.decode(Buffer.from(config.defaultStadiumId, 'hex'))
+  useEffect(() => {
+    const pubkey: anchor.web3.PublicKey = anchor.web3.PublicKey.decode(Buffer.from(config.defaultStadiumId, 'hex'))
+    console.log('spubkey', pubkey.toString())
     setStadiumPubkey(pubkey)
+  }, [])
 
-    const seeds = [provider.wallet.publicKey.toBuffer()]
+  useEffect(() => {
+    if (!wallet.connected) {
+      return
+    }
+    if (!wallet.publicKey) {
+      return
+    }
+    const program = getProgram()
+
+    const seeds = [wallet.publicKey.toBuffer()]
     const [playerPda, bumps] = PublicKey.findProgramAddressSync(seeds, program.programId)
 
     setPlayerPda(playerPda)
-
-  }, [provider])
+  }, [wallet])
 
   useEffect(() => {
-    if (!provider|| !program || !stadiumPubkey || !playerPda) {
+    const program = getProgram()
+    // const hex = Buffer.from('defee9d759aaba1f30624bf0b7a78ed0f740b20b871f83b6dd431d8793456d2f', 'hex')
+    // const stadiumPubkey: anchor.web3.PublicKey = anchor.web3.PublicKey.decode(hex)
+
+    if (!program || !stadiumPubkey) {
+      console.log('ss', program)
+      console.log('sss', stadiumPubkey)
       return
     }
 
@@ -98,15 +111,17 @@ const Home: NextPage = () => {
         }
   
         setStadium(s)
-      }catch{
+      }catch(e){
+        console.log(e)
         setStadium(undefined)
       }
     }
     getStadium()
-  }, [stadiumPubkey])
+  }, [stadiumPubkey, player])
 
   const updatePlayer = async () => {
-    if (!provider|| !program || !stadiumPubkey || !playerPda) {
+    const program = getProgram()
+    if (!program || !stadiumPubkey || !playerPda) {
       return
     }
     try{
@@ -130,8 +145,20 @@ const Home: NextPage = () => {
   }, [playerPda])
   
   const register = () => {
-    if (!provider|| !program || !stadiumPubkey || !playerPda) {
-      return ''
+    const program = getProgram()
+    if (!program || !stadiumPubkey || !playerPda) {
+      console.log('a')
+      return
+    }
+    if (!wallet.connected) {
+      console.log('b')
+      return
+    }
+
+    const pubkey = wallet.publicKey
+    if (!pubkey) {
+      console.log('c')
+      return
     }
 
     setTransactionDone(false)
@@ -142,13 +169,14 @@ const Home: NextPage = () => {
           accounts: {
             player: playerPda,
             stadium: stadiumPubkey,
-            playerOwner: provider.wallet.publicKey,
+            playerOwner: pubkey,
             systemProgram: SystemProgram.programId,
           },
         });
         console.log(res)
         setTxid(res)
-      }catch{
+      }catch(e){
+        console.log(e)
         setTxid('')
         setTxError('register failed')
       }
@@ -158,8 +186,18 @@ const Home: NextPage = () => {
   }
 
   const play = () => {
-    if (!provider|| !program || !stadiumPubkey || !playerPda) {
+    const program = getProgram()
+
+    if (!program || !stadiumPubkey || !playerPda) {
       return ''
+    }
+    if (!wallet.connected) {
+      return
+    }
+    
+    const pubkey = wallet.publicKey
+    if (!pubkey) {
+      return
     }
 
     setTransactionDone(false)
@@ -170,13 +208,14 @@ const Home: NextPage = () => {
           accounts: {
             player: playerPda,
             stadium: stadiumPubkey,
-            playerOwner: provider.wallet.publicKey,
+            playerOwner: pubkey,
           },
         });
         console.log(res)
         setTxid(res)
         setTransactionDone(true)
-      } catch {
+      } catch(e) {
+        console.log(e)
         setTxid('')
         setTxError('play failed')
       }
@@ -221,7 +260,7 @@ const Home: NextPage = () => {
         {
           !wallet.connected ? <WalletMultiButton />: <div></div>
         }
-        {!wallet.connected ? (
+        {wallet.connected ? (
           <Link href={`https://mumbai.polygonscan.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
           {wallet.publicKey?.toBase58()} <ExternalLinkIcon mx='2px'/>
           </Link>
@@ -257,7 +296,7 @@ const Home: NextPage = () => {
         {!!txid ? 
           <VStack>
             <HStack>
-              {transactionDone ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<CircularProgress w={4} h={4} isIndeterminate color='blue.300' />)}
+              {transactionDone ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<Spinner size='md' />)}
               <Link href={`https://explorer.solana.com/tx/${txid}`} isExternal >
               {txid.slice(0, 16)}... <ExternalLinkIcon mx='2px'/>
               </Link>
