@@ -74,7 +74,25 @@ const Home: NextPage = () => {
     return pubkey
   }
 
+  const getStadium = async (program: anchor.Program<Mysolanaapp>) => {
+    const stadiumPubkey = getStadiumPubkey()
+    try{
+      const stadium = await program.account.stadium.fetch(stadiumPubkey);
+      const s: Stadium =  {
+        bases: stadium.bases,
+        outs: stadium.outs,
+        score: stadium.score.toString(),
+      }
+
+      setStadium(s)
+    }catch(e){
+      console.log(e)
+      setStadium(undefined)
+    }
+  }
+
   useEffect(() => {
+    console.log('wallet')
     if (!wallet.connected) {
       return
     }
@@ -87,6 +105,7 @@ const Home: NextPage = () => {
     const [playerPda, bumps] = PublicKey.findProgramAddressSync(seeds, program.programId)
 
     setPlayerPda(playerPda)
+    getStadium(program)
   }, [wallet])
 
   useEffect(() => {
@@ -96,30 +115,14 @@ const Home: NextPage = () => {
     if (!program || !stadiumPubkey) {
       return
     }
-
-    const getStadium = async () => {
-      try{
-        const stadium = await program.account.stadium.fetch(stadiumPubkey);
-        const s: Stadium =  {
-          bases: stadium.bases,
-          outs: stadium.outs,
-          score: stadium.score.toString(),
-        }
-  
-        setStadium(s)
-      }catch(e){
-        console.log(e)
-        setStadium(undefined)
-      }
-    }
+    
     setTxError('')
-    getStadium()
+    getStadium(program)
   }, [player])
 
   const updatePlayer = async () => {
     const program = getProgram()
-    const stadiumPubkey = getStadiumPubkey()
-    if (!program || !stadiumPubkey || !playerPda) {
+    if (!program || !playerPda) {
       return
     }
     try{
@@ -234,6 +237,8 @@ const Home: NextPage = () => {
     updatePlayer()
   }, [txStatus])
 
+
+
   return (
     <Center>
       <Box p={4} bg={'white'} shadow='md' rounded='md'>
@@ -259,12 +264,17 @@ const Home: NextPage = () => {
             !wallet.connected ? <WalletMultiButton />: <div></div>
           }
           {wallet.connected ? (
-            <Link href={`https://explorer.solana.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
-            {wallet.publicKey?.toBase58()} <ExternalLinkIcon mx='2px'/>
-            </Link>
+            <HStack>
+              <Link href={`https://explorer.solana.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
+                {wallet.publicKey?.toBase58().substring(0, 12)}... <ExternalLinkIcon mx='2px'/>
+              </Link>
+              <Button onClick={() => wallet.disconnect()} colorScheme='gray' variant='solid' disabled={!wallet.connected || txStatus == 'pending'} size={'sm'}>
+                Disconnect
+              </Button>
+            </HStack>
             ) : (<p>not connected</p>)
           }
-          {!!player ? (
+          {!!player && wallet.connected ? (
             <PlayerParamComponent power={player.power} control={player.control} sprint={player.sprint}/>
             ) : (<div></div>)
           }
