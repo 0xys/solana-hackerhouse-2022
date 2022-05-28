@@ -60,7 +60,7 @@ pub mod mysolanaapp {
         player.score += 1;
 
         let stadium = &mut ctx.accounts.stadium;
-        stadium.score += 1;
+        stadium.score += 2;
         Ok(())
     }
 
@@ -85,14 +85,15 @@ pub mod mysolanaapp {
     //    seeds = [&get_player_key_seeds(player_owner.key, program_id)],
     #[derive(Accounts)]
     pub struct RegisterPlayer<'info> {
-        #[account(init,
+        #[account(mut)]
+        pub stadium: Account<'info, Stadium>,
+        #[account(
+            init,
             seeds = [&player_owner.key().to_bytes()],
             bump,
             payer = player_owner,
             space = 8 + 40)]
         pub player: Account<'info, PlayerAccount>,
-        #[account(mut)]
-        pub stadium: Account<'info, Stadium>,
         #[account(mut)]
         pub player_owner: Signer<'info>,
         pub system_program: Program <'info, System>,
@@ -102,9 +103,11 @@ pub mod mysolanaapp {
     pub struct Play<'info> {
         #[account(mut)]
         pub stadium: Account<'info, Stadium>,
-        #[account(mut, has_one = owner)]
+        #[account(
+            mut,
+            seeds = [&player_owner.key().to_bytes()],
+            bump)]
         pub player: Account<'info, PlayerAccount>,
-        pub owner: Signer<'info>,
-        pub system_program: Program <'info, System>,
+        pub player_owner: Signer<'info>,
     }
 }
