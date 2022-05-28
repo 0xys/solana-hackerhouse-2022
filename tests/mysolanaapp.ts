@@ -10,39 +10,59 @@ describe("mysolanaapp", () => {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.Mysolanaapp as Program<Mysolanaapp>;
-  let _baseAccount: anchor.web3.Keypair;
+  let _stadium: anchor.web3.Keypair;
 
-  it("Creates a counter)", async () => {
+  it("Initialize Game)", async () => {
     /* Call the create function via RPC */
-    const baseAccount = anchor.web3.Keypair.generate();
-    await program.rpc.create({
+    const stadium = anchor.web3.Keypair.generate();
+    await program.rpc.initGame({
       accounts: {
-        baseAccount: baseAccount.publicKey,
-        user: provider.wallet.publicKey,
+        stadium: stadium.publicKey,
+        authority: provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       },
-      signers: [baseAccount],
+      signers: [stadium],
     });
 
     /* Fetch the account and check the value of count */
-    const account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-    console.log('Count 0: ', account.count.toString())
-    assert.ok(account.count.toString() == '0');
-    _baseAccount = baseAccount;
+    const account = await program.account.stadium.fetch(stadium.publicKey)
+    assert.ok(account.bases.toString() == '0');
+    assert.ok(account.outs.toString() == '0');
+    assert.ok(account.score.toString() == '0');
+    assert.ok(account.epoch.toString() == '0');
+    assert.ok(account.authority.toBase58() == provider.wallet.publicKey.toBase58());
+    _stadium = stadium;
 
   });
 
-  it("Increments the counter", async () => {
-    const baseAccount = _baseAccount;
-
-    await program.rpc.increment({
+  it("Reset Game)", async () => {
+    await program.rpc.reset({
       accounts: {
-        baseAccount: baseAccount.publicKey,
-      },
+        stadium: _stadium.publicKey,
+        authority: provider.wallet.publicKey,
+      }
     });
 
-    const account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-    console.log('Count 1: ', account.count.toString())
-    assert.ok(account.count.toString() == '1');
+    /* Fetch the account and check the value of count */
+    const account = await program.account.stadium.fetch(_stadium.publicKey);
+    assert.ok(account.bases.toString() == '0');
+    assert.ok(account.outs.toString() == '0');
+    assert.ok(account.score.toString() == '0');
+    assert.ok(account.epoch.toString() == '1');
+    assert.ok(account.authority.toBase58() == provider.wallet.publicKey.toBase58());
   });
+
+  // it("Play the game", async () => {
+  //   const baseAccount = _stadium;
+
+  //   await program.rpc.increment({
+  //     accounts: {
+  //       baseAccount: baseAccount.publicKey,
+  //     },
+  //   });
+
+  //   const account = await program.account.baseAccount.fetch(baseAccount.publicKey);
+  //   console.log('Count 1: ', account.count.toString())
+  //   assert.ok(account.count.toString() == '1');
+  // });
 });
