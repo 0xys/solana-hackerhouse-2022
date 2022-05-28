@@ -18,19 +18,6 @@ pub struct PlayerAccount {
     pub score: u64,
 }
 
-/// util function
-pub fn get_player_key_seeds(owner_key: &Pubkey, program_id: &Pubkey) -> [u8; 41] {
-    let mut seeds = [0u8; 40];
-    seeds[..8].copy_from_slice("registry".as_bytes());
-    seeds[8..40].copy_from_slice(&owner_key.to_bytes());
-
-    let (_, bump_seed) = Pubkey::find_program_address(&[&seeds], program_id);
-    let mut bumped_seeds = [0u8; 41];
-    bumped_seeds[0..40].copy_from_slice(&seeds[..40]);
-    bumped_seeds[40] = bump_seed;
-    bumped_seeds
-}
-
 #[program]
 pub mod mysolanaapp {
     use anchor_lang::solana_program::{entrypoint::ProgramResult};
@@ -58,13 +45,6 @@ pub mod mysolanaapp {
     }
 
     pub fn register_player(ctx: Context<RegisterPlayer>) -> ProgramResult {
-        // let seeds = get_player_key_seeds(&ctx.accounts.authority.key, &ctx.program_id);
-        // let expected_player = Pubkey::create_program_address(&[&seeds], &ctx.program_id)?;
-        
-        // if !ctx.accounts.player.key().eq(&expected_player.key()) {
-        //     return Err(ProgramError::InvalidSeeds)
-        // }
-        
         let player = &mut ctx.accounts.player;
         player.score = 0;
         player.owner = *ctx.accounts.player_owner.key;
@@ -76,13 +56,6 @@ pub mod mysolanaapp {
     }
 
     pub fn play(ctx: Context<Play>) -> ProgramResult {
-        let seeds = get_player_key_seeds(&ctx.accounts.player.owner, &ctx.program_id);
-        let expected_player = Pubkey::create_program_address(&[&seeds], &ctx.program_id)?;
-
-        if !ctx.accounts.player.key().eq(&expected_player.key()) {
-            return Err(ProgramError::InvalidSeeds)
-        }
-
         let player = &mut ctx.accounts.player;
         player.score += 1;
 
