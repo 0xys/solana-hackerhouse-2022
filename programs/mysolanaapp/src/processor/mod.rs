@@ -58,20 +58,34 @@ fn throw_a_dice(seed: i64, batting_param: u8, sprinter_param: u8, salt_1: u8, sa
     let sprint = sprinter_param % 16;
 
     let salt_1: i64 = salt_1.into();
-    let dice: u8 = ((seed * salt_1) % 64).abs().try_into().unwrap();
+    let dice: u16 = ((seed * salt_1) % 1000).abs().try_into().unwrap();
+    let dice: f32 = dice.try_into().unwrap();
+    let dice = dice / 1000f32;
 
-    if dice >= 32 {
-        return 0;   // 50% out
+    let power: f32 = power.into();
+    let control: f32 = control.into();
+    let sprint: f32 = sprint.into();
+
+    let power: f32 = power / 15.0;
+    let control: f32 = control / 15.0;
+    let sprint: f32 = sprint / 15.0;
+
+    let hit_zone: f32 = 0.24 + (control * 0.21);    // max 0.45
+    if dice >= hit_zone {
+        return 0;   // out
     }
 
-    if power/4 >= dice {
+    let power_zone = hit_zone * power * 0.3;
+    if dice < power_zone * 0.25 {
         return 4;   // homerun
+    }else if dice < power_zone * 0.9 {
+        return 2;   // double
+    }else if dice < power_zone {
+        return 3;   // triple
     }
 
     let mut tmp_result;
-    if power >= dice {
-        tmp_result = 2;   // double
-    } else if (power + control/4) >= dice {
+    if dice < power_zone + (hit_zone - power_zone) * 0.2 {
         tmp_result = 2; // double
     } else {
         tmp_result = 1; // single
@@ -104,3 +118,90 @@ fn calc_score(bases: u8) -> u8 {
     }
     total_score
 }
+
+// test
+// fn main() {
+//     {
+//         let mut counts = [0usize; 5];
+//         for _ in 0..10000 {
+//             let index: usize = get(0, 0).into();
+//             counts[index] += 1;
+//         }
+//         println!("{:?}", counts);
+//     }
+//     {
+//         let mut counts = [0usize; 5];
+//         for _ in 0..10000 {
+//             let index: usize = get(4, 0).into();
+//             counts[index] += 1;
+//         }
+//         println!("{:?}", counts);
+//     }
+//     {
+//         let mut counts = [0usize; 5];
+//         for _ in 0..10000 {
+//             let index: usize = get(8, 0).into();
+//             counts[index] += 1;
+//         }
+//         println!("{:?}", counts);
+//     }
+//     {
+//         let mut counts = [0usize; 5];
+//         for _ in 0..10000 {
+//             let index: usize = get(12, 0).into();
+//             counts[index] += 1;
+//         }
+//         println!("{:?}", counts);
+//     }
+//     {
+//         let mut counts = [0usize; 5];
+//         for _ in 0..10000 {
+//             let index: usize = get(16, 0).into();
+//             counts[index] += 1;
+//         }
+//         println!("{:?}", counts);
+//     }
+    
+// }
+
+// fn get(power: u8, sprint: u8) -> u8 {
+//     let mut rng = rand::thread_rng();
+//     let dice: f32 = rng.gen();
+
+//     let control: u8 = 16 - power;
+
+//     //let salt_1: i64 = salt_1.into();
+//     //let dice: u16 = ((seed * salt_1) % 1000).abs().try_into().unwrap();
+//     //let dice: f32 = dice.try_into().unwrap();
+//     //let dice = dice / 1000f32;
+
+//     let power: f32 = power.into();
+//     let control: f32 = control.into();
+//     let sprint: f32 = sprint.into();
+
+//     let power: f32 = power / 15.0;
+//     let control: f32 = control / 15.0;
+//     let sprint: f32 = sprint / 15.0;
+
+//     let hit_zone: f32 = 0.24 + (control * 0.21);    // max 0.45
+//     if dice >= hit_zone {
+//         return 0;   // out
+//     }
+
+//     let power_zone = hit_zone * power * 0.3;
+//     if dice < power_zone * 0.25 {
+//         return 4;   // homerun
+//     }else if dice < power_zone * 0.9 {
+//         return 2;
+//     }else if dice < power_zone {
+//         return 3;   // triple
+//     }
+
+//     let mut tmp_result;
+//     if dice < power_zone + (hit_zone - power_zone) * 0.2 {
+//         tmp_result = 2; // double
+//     } else {
+//         tmp_result = 1; // single
+//     }
+//     return tmp_result;
+// }
