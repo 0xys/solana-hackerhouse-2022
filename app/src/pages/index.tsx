@@ -34,19 +34,19 @@ const opts = {
 }
 const programID = new PublicKey(idl.metadata.address);
 
+type TransactionStatus = 'empty' | 'pending' | 'done'
+type TransactionType = 'empty' | 'register' | 'play'
+
 const Home: NextPage = () => {
   const wallet = useWallet();
-  const [value, setValue] = useState();
 
   const [network, setNetwork] = useState<string>('http://127.0.0.1:8899')
-  const [stadiumPubkey, setStadiumPubkey] = useState<anchor.web3.PublicKey>()
   const [stadium, setStadium] = useState<Stadium>()
   const [playerRegistered, setPlayerRegistered] = useState<boolean>(false)
   const [playerPda, setPlayerPda] = useState<anchor.web3.PublicKey>()
   const [player, setPlayer] = useState<Player>()
-  //const [provider, setProvider] = useState<anchor.AnchorProvider>()
-  //const [program, setProgram] = useState<anchor.Program<Mysolanaapp>>()
-  const [transactionDone, setTransactionDone] = useState<boolean>(true)
+  const [txStatus, setTxStatus] = useState<TransactionStatus>('empty')
+  const [txType, setTxType] = useState<TransactionType>('empty')
   const [txid, setTxid] = useState<string>('')
   const [txError, setTxError] = useState<string>('')
 
@@ -69,11 +69,10 @@ const Home: NextPage = () => {
     return program
   }
 
-  useEffect(() => {
+  const getStadiumPubkey = () => {
     const pubkey: anchor.web3.PublicKey = anchor.web3.PublicKey.decode(Buffer.from(config.defaultStadiumId, 'hex'))
-    console.log('spubkey', pubkey.toString())
-    setStadiumPubkey(pubkey)
-  }, [])
+    return pubkey
+  }
 
   useEffect(() => {
     if (!wallet.connected) {
@@ -92,12 +91,9 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     const program = getProgram()
-    // const hex = Buffer.from('defee9d759aaba1f30624bf0b7a78ed0f740b20b871f83b6dd431d8793456d2f', 'hex')
-    // const stadiumPubkey: anchor.web3.PublicKey = anchor.web3.PublicKey.decode(hex)
+    const stadiumPubkey = getStadiumPubkey()
 
     if (!program || !stadiumPubkey) {
-      console.log('ss', program)
-      console.log('sss', stadiumPubkey)
       return
     }
 
@@ -116,11 +112,13 @@ const Home: NextPage = () => {
         setStadium(undefined)
       }
     }
+    setTxError('')
     getStadium()
-  }, [stadiumPubkey, player])
+  }, [player])
 
   const updatePlayer = async () => {
     const program = getProgram()
+    const stadiumPubkey = getStadiumPubkey()
     if (!program || !stadiumPubkey || !playerPda) {
       return
     }
@@ -146,22 +144,21 @@ const Home: NextPage = () => {
   
   const register = () => {
     const program = getProgram()
+    const stadiumPubkey = getStadiumPubkey()
     if (!program || !stadiumPubkey || !playerPda) {
-      console.log('a')
       return
     }
     if (!wallet.connected) {
-      console.log('b')
       return
     }
 
     const pubkey = wallet.publicKey
     if (!pubkey) {
-      console.log('c')
       return
     }
 
-    setTransactionDone(false)
+    setTxType('register')
+    setTxStatus('pending')
 
     const registerPlayer = async () => {
       try{
@@ -175,10 +172,12 @@ const Home: NextPage = () => {
         });
         console.log(res)
         setTxid(res)
+        setTxStatus('done')
       }catch(e){
         console.log(e)
         setTxid('')
         setTxError('register failed')
+        setTxStatus('empty')
       }
     }
 
@@ -187,6 +186,7 @@ const Home: NextPage = () => {
 
   const play = () => {
     const program = getProgram()
+    const stadiumPubkey = getStadiumPubkey()
 
     if (!program || !stadiumPubkey || !playerPda) {
       return ''
@@ -200,7 +200,8 @@ const Home: NextPage = () => {
       return
     }
 
-    setTransactionDone(false)
+    setTxType('play')
+    setTxStatus('pending')
 
     const playInner = async () => {
       try{
@@ -213,11 +214,12 @@ const Home: NextPage = () => {
         });
         console.log(res)
         setTxid(res)
-        setTransactionDone(true)
+        setTxStatus('done')
       } catch(e) {
         console.log(e)
         setTxid('')
         setTxError('play failed')
+        setTxStatus('empty')
       }
     }
 
@@ -225,11 +227,8 @@ const Home: NextPage = () => {
   }
 
   useEffect(() => {
-    if (!transactionDone) {
-      return
-    }
     updatePlayer()
-  }, [transactionDone])
+  }, [txStatus])
 
   return (
     <div className={styles.container}>
@@ -261,57 +260,46 @@ const Home: NextPage = () => {
           !wallet.connected ? <WalletMultiButton />: <div></div>
         }
         {wallet.connected ? (
-          <Link href={`https://mumbai.polygonscan.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
+          <Link href={`https://explorer.solana.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
           {wallet.publicKey?.toBase58()} <ExternalLinkIcon mx='2px'/>
           </Link>
         ) : (<p>not connected</p>)}
         <Divider orientation='horizontal' />
-        {/* <VStack>
-          <Input placeholder='Batter NFT Address' width={'auto'} onChange={onBatterContractAddressChange} disabled={!address}/>
-          <Input placeholder='Batter NFT TokenId' width={'32md'} onChange={onBatterTokenIdChange} disabled={!address}/>
-        </VStack> */}
-        {/* {batterNftLink != '' ? (<Link href={batterNftLink} isExternal>
-          Open in Opensea <ExternalLinkIcon mx='2px'/>
-          </Link>): (<div></div>)} */}
         <VStack margin={10}>
           {
             playerRegistered ? (
-            <Button onClick={() => play()} colorScheme='blue' variant='outline' disabled={!wallet.connected}>
+            <Button onClick={() => play()} colorScheme='blue' variant='outline' disabled={!wallet.connected || txStatus == 'pending'}>
               Play
             </Button>):(
-              <Button onClick={() => register()} colorScheme='blue' variant='outline' disabled={!wallet.connected}>
+              <Button onClick={() => register()} colorScheme='blue' variant='outline' disabled={!wallet.connected || txStatus == 'pending'}>
               Register
             </Button>
             )
           }
-          {!!txid ? (
-            <Link href={`https://explorer.solana.com/tx/${txid}`} isExternal>
-              {wallet.publicKey?.toBase58()} <ExternalLinkIcon mx='2px'/>
-            </Link>
-          ): (
-            <p>{txError}</p>
-          )}
         </VStack>
         <Divider orientation='horizontal' />
-        {!!txid ? 
-          <VStack>
-            <HStack>
-              {transactionDone ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<Spinner size='md' />)}
-              <Link href={`https://explorer.solana.com/tx/${txid}`} isExternal >
-              {txid.slice(0, 16)}... <ExternalLinkIcon mx='2px'/>
-              </Link>
-            </HStack> : <div></div>
-            {player && playerPda ? (
-              <ResultComponent result={player.lastPlay} batter={playerPda.toBase58()} score={player.lastScore}/>
-            ) : <div></div>}
-          </VStack>
-          : <div></div>
+        {
+          txStatus == 'empty' ? (<div></div>) :
+          (
+            <VStack>
+              <HStack>
+                {txStatus == 'done' ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<Spinner size='md' />)}
+                {txStatus == 'done' ? (
+                    <Link href={`https://explorer.solana.com/tx/${txid}`} isExternal >
+                      {txid.slice(0, 16)}... <ExternalLinkIcon mx='2px'/>
+                    </Link>
+                  ):(
+                    <p>awaiting confirmation...</p>
+                  )
+                }
+              </HStack> : <div></div>
+              {!!txError ? (<p>{txError}</p>) : (<div></div>)}
+              {txStatus == 'done' && player && playerPda && txType == 'play' ? (
+                <ResultComponent result={player.lastPlay} batter={playerPda.toBase58()} score={player.lastScore}/>
+              ) : <div></div>}
+            </VStack>
+          )
         }
-        
-        
-        <div>
-
-        </div>
       </VStack>
     </div>
   )
