@@ -1,9 +1,8 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 
-import { Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, } from '@chakra-ui/react'
+import { Image, Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, } from '@chakra-ui/react'
 import { CheckCircleIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 import {
   Stat,
@@ -36,7 +35,6 @@ const opts = {
   preflightCommitment: "processed"
 }
 const programID = new PublicKey(idl.metadata.address);
-const defaultStadiumId = ''
 
 const Home: NextPage = () => {
   const wallet = useWallet();
@@ -217,7 +215,7 @@ const Home: NextPage = () => {
 
           <Stat margin={10}>
             <StatLabel>Runners</StatLabel>
-            <Image src={toBaseImgSrc(stadium?.bases ?? 0)} />
+            <Image src={toBaseImgSrc(stadium?.bases ?? 0)} marginTop={2}/>
           </Stat>
         </StatGroup>
         {
