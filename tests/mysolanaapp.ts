@@ -1,5 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
+import { PublicKey } from "@solana/web3.js";
 import { Mysolanaapp } from "../target/types/mysolanaapp";
 
 const { SystemProgram } = anchor.web3;
@@ -30,6 +31,7 @@ describe("mysolanaapp", () => {
     assert.ok(account.outs.toString() == '0');
     assert.ok(account.score.toString() == '0');
     assert.ok(account.epoch.toString() == '0');
+    assert.ok(account.numOfPlayers.toString() == '0');
     assert.ok(account.authority.toBase58() == provider.wallet.publicKey.toBase58());
     _stadium = stadium;
 
@@ -40,7 +42,7 @@ describe("mysolanaapp", () => {
       accounts: {
         stadium: _stadium.publicKey,
         authority: provider.wallet.publicKey,
-      }
+      },
     });
 
     /* Fetch the account and check the value of count */
@@ -52,17 +54,27 @@ describe("mysolanaapp", () => {
     assert.ok(account.authority.toBase58() == provider.wallet.publicKey.toBase58());
   });
 
-  // it("Play the game", async () => {
-  //   const baseAccount = _stadium;
+  let _playerPda: anchor.web3.PublicKey;
+  it("Register Player", async () => {
 
-  //   await program.rpc.increment({
-  //     accounts: {
-  //       baseAccount: baseAccount.publicKey,
-  //     },
-  //   });
+    const seeds = [provider.wallet.publicKey.toBuffer()]
+    const [playerPda, bumps] = PublicKey.findProgramAddressSync(seeds, program.programId)
 
-  //   const account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-  //   console.log('Count 1: ', account.count.toString())
-  //   assert.ok(account.count.toString() == '1');
-  // });
+    await program.rpc.registerPlayer({
+      accounts: {
+        player: playerPda,
+        stadium: _stadium.publicKey,
+        playerOwner: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    });
+
+    const stadium = await program.account.stadium.fetch(_stadium.publicKey);
+    assert.ok(stadium.numOfPlayers.toString() == '1');
+
+    const player = await program.account.playerAccount.fetch(playerPda);
+    assert.ok(player.score.toString() == '0');
+
+    _playerPda = playerPda;
+  });
 });
