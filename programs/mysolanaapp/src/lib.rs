@@ -1,3 +1,5 @@
+pub mod processor;
+
 use anchor_lang::prelude::*;
 
 declare_id!("9Kkk5Cp6NfvXEyt7oeX9ihYcwkczBSxTkUemprpxEkEe");
@@ -21,6 +23,8 @@ pub struct PlayerAccount {
 #[program]
 pub mod mysolanaapp {
     use anchor_lang::solana_program::{entrypoint::ProgramResult};
+
+    use crate::processor::play_inner;
 
     use super::*;
 
@@ -56,11 +60,17 @@ pub mod mysolanaapp {
     }
 
     pub fn play(ctx: Context<Play>) -> ProgramResult {
+        let clock = Clock::get()?;
+        let token = clock.unix_timestamp;
+
+        let score = play_inner(token, &ctx.accounts.player, &mut ctx.accounts.stadium);
+
         let player = &mut ctx.accounts.player;
-        player.score += 1;
+        player.score += score;
 
         let stadium = &mut ctx.accounts.stadium;
-        stadium.score += 2;
+        stadium.score += score;
+
         Ok(())
     }
 
