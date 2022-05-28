@@ -35,6 +35,14 @@ const Layout = ({ children }: Props) => {
         >
           Created by 0xys
         </a>
+        <br />
+        <a
+          href='https://www.istockphoto.com/jp/portfolio/Aksonov?mediatype=photography'
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          Image by Aksonov
+        </a>
       </footer>
     </div>
   );

@@ -1,24 +1,15 @@
 .container {
-  height: 100%;
   position: relative;
   padding-top: 10%;
-  padding-bottom: 20%;
+  padding-bottom: 10%;
   box-sizing: border-box;
   font-family: 'Open Sans', sans-serif;
 
-  background: #00d2ff; /* fallback for old browsers */
-  background: -webkit-linear-gradient(
-    to bottom,
-    #3a7bd5,
-    #00d2ff,
-    #fff
-  ); /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(
-    to bottom,
-    #3a7bd5,
-    #00d2ff,
-    #fff
-  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  height: 100%;
+
+  background-image: url(../../public/stadium.jpg) ;
+  background-size: cover;
+  background-position: center;
 }
 
 .heading {
@@ -42,7 +33,7 @@
 .header {
   top: 0px;
   width: 100%;
-  padding: 20px;
+  padding: 4%;
 }
 
 .footer {
