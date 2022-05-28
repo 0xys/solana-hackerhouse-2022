@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 
-import { Image, Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, Spinner, Box, Center, } from '@chakra-ui/react'
+import { Image, Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, Spinner, Box, Center, Badge, } from '@chakra-ui/react'
 import { CheckCircleIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 import {
   Stat,
@@ -26,6 +26,7 @@ import config from '../config.json'
 import { ResultComponent } from '../components/result'
 import { Mysolanaapp } from '../types/mysolanaapp'
 import { Player, Stadium } from '../types/models'
+import { PlayerParamComponent } from '../components/player-param'
 
 const { SystemProgram, Keypair } = web3;
 const opts = {
@@ -122,11 +123,15 @@ const Home: NextPage = () => {
       return
     }
     try{
-      const p = await program.account.playerAccount.fetch(playerPda);
+      const p = await program.account.playerAccount.fetch(playerPda)
+      const [power, control, sprint] = getPlayerParam(playerPda)
       const player: Player = {
         score: p.score.toString(),
         lastPlay: p.lastPlay,
         lastScore: p.lastScore,
+        power,
+        control,
+        sprint
       }
 
       setPlayerRegistered(true)
@@ -257,7 +262,12 @@ const Home: NextPage = () => {
             <Link href={`https://explorer.solana.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
             {wallet.publicKey?.toBase58()} <ExternalLinkIcon mx='2px'/>
             </Link>
-          ) : (<p>not connected</p>)}
+            ) : (<p>not connected</p>)
+          }
+          {!!player ? (
+            <PlayerParamComponent power={player.power} control={player.control} sprint={player.sprint}/>
+            ) : (<div></div>)
+          }
           <Divider orientation='horizontal' />
           <VStack margin={10}>
             {
@@ -335,6 +345,13 @@ const toBaseImgSrc = (n: number): string => {
   }
   const src = `/bases/bases.${baseMarks}.svg`
   return src
+}
+
+const getPlayerParam = (key: PublicKey): [number, number, number] => {
+  const buf = key.encode()
+  const batting_param = buf[3] % 16
+  const sprinter_param = buf[4] % 16
+  return [batting_param, 16 - batting_param, sprinter_param]
 }
 
 export default Home

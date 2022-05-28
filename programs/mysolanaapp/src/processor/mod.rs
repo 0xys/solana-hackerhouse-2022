@@ -53,8 +53,8 @@ pub fn play_inner(seed: i64, player: &mut Account<PlayerAccount>, stadium: &mut 
 }
 
 fn throw_a_dice(seed: i64, batting_param: u8, sprinter_param: u8, salt_1: u8, salt_2: u8) -> u8 {
-    let power = batting_param / 16;
-    let control = (255u8 - batting_param) / 16;
+    let power = batting_param % 16;
+    let control = 16 - power;
     let sprint = sprinter_param % 16;
 
     let salt_1: i64 = salt_1.into();
