@@ -242,8 +242,8 @@ const Home: NextPage = () => {
   return (
     <Center>
       <Box p={4} bg={'white'} shadow='md' rounded='md'>
-        <VStack margin={16}>
-          <Heading marginTop={12}>NFT Baseball</Heading>
+        <VStack margin={12}>
+          <Heading marginTop={2}>NFT Baseball</Heading>
           <StatGroup background={'#dddddd'}>
             <Stat margin={10}>
               <StatLabel>Score</StatLabel>

@@ -2,7 +2,7 @@ pub mod processor;
 
 use anchor_lang::prelude::*;
 
-declare_id!("9Kkk5Cp6NfvXEyt7oeX9ihYcwkczBSxTkUemprpxEkEe");
+declare_id!("ATSPEhRAUhpdLQcEjdWYuB9BNJv3iABoTdnCug54Ruye");
 
 #[account]
 pub struct Stadium {
