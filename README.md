@@ -41,6 +41,12 @@ anchor deploy
 ```
 Run `solana logs` to track the transaction trace.
 
+### Devnet
+```
+solana airdrop 2 --url devnet
+anchor deploy --provider.cluster devnet
+```
+
 ## Mint test token
 ```
 solana airdrop 100 <YOUR_ADDRESS>

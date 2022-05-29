@@ -5,6 +5,7 @@ const { SystemProgram } = anchor.web3;
 
 // process.env['ANCHOR_PROVIDER_URL'] = 'http://127.0.0.1:8899'
 const provider = anchor.AnchorProvider.env();
+// const provider = anchor.AnchorProvider.local('https://api.devnet.solana.com');
 
 (async () => {
     const stadium = anchor.web3.Keypair.generate();
