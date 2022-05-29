@@ -40,7 +40,7 @@ type TransactionType = 'empty' | 'register' | 'play'
 const Home: NextPage = () => {
   const wallet = useWallet();
 
-  const [network, setNetwork] = useState<string>('http://127.0.0.1:8899')
+  const [network, setNetwork] = useState<string>(config.network)
   const [stadium, setStadium] = useState<Stadium>()
   const [playerRegistered, setPlayerRegistered] = useState<boolean>(false)
   const [playerPda, setPlayerPda] = useState<anchor.web3.PublicKey>()
@@ -265,7 +265,7 @@ const Home: NextPage = () => {
           }
           {wallet.connected ? (
             <HStack>
-              <Link href={`https://explorer.solana.com/address/${wallet.publicKey?.toBase58()}`} isExternal>
+              <Link href={`https://explorer.solana.com/address/${wallet.publicKey?.toBase58()}${config.networkTag}`} isExternal>
                 {wallet.publicKey?.toBase58().substring(0, 12)}... <ExternalLinkIcon mx='2px'/>
               </Link>
               <Button onClick={() => wallet.disconnect()} colorScheme='gray' variant='solid' disabled={!wallet.connected || txStatus == 'pending'} size={'sm'}>
@@ -299,7 +299,7 @@ const Home: NextPage = () => {
                 <HStack>
                   {txStatus == 'done' ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<Spinner size='md' />)}
                   {txStatus == 'done' ? (
-                      <Link href={`https://explorer.solana.com/tx/${txid}`} isExternal >
+                      <Link href={`https://explorer.solana.com/tx/${txid}${config.networkTag}`} isExternal >
                         {txid.slice(0, 16)}... <ExternalLinkIcon mx='2px'/>
                       </Link>
                     ):(

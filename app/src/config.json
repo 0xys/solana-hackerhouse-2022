@@ -1,3 +1,6 @@
 {
-    "defaultStadiumId": "8bc5422b613a42adca6dd10df6a8d0e828d155ee4b082e83d3239caf0c7cb7ad"
+    "defaultStadiumId": "3d57319f7e5c525dd635950a6a30ce86c45fd46a4afc1aa012da8fa9b2b2e61e",
+    "_network": "http://127.0.0.1:8899",
+    "network": "https://api.devnet.solana.com",
+    "networkTag": "?cluster=devnet"
 }

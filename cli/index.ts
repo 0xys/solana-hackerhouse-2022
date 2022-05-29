@@ -3,11 +3,12 @@ import { Program } from "@project-serum/anchor";
 import { Mysolanaapp } from "../target/types/mysolanaapp";
 const { SystemProgram } = anchor.web3;
 
-// process.env['ANCHOR_PROVIDER_URL'] = 'http://127.0.0.1:8899'
+// console.log(process.env['ANCHOR_PROVIDER_URL'])
 const provider = anchor.AnchorProvider.env();
 // const provider = anchor.AnchorProvider.local('https://api.devnet.solana.com');
 
 (async () => {
+    anchor.setProvider(provider)
     const stadium = anchor.web3.Keypair.generate();
     const program = anchor.workspace.Mysolanaapp as Program<Mysolanaapp>
     const res = await program.rpc.initGame({
